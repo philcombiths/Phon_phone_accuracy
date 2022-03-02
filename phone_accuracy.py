@@ -23,7 +23,9 @@ def change_dir(newdir):
         os.chdir(prevdir)
 
 # Specify folder containing Phon output
-def folder_input(subdirectories=True, separate_file_path=True):
+def folder_input(subdirectories=True, separate_file_path=True, path=False):
+
+    
     """
 
     Parameters
@@ -32,14 +34,20 @@ def folder_input(subdirectories=True, separate_file_path=True):
         Searches subdirectories if True. The default is True.
     separate_file_path : BOOL, optional
         Returns tuple (FILEPATH, FILENAME) if True. The default is True.
-
+    path : STR (BOOL), optional
+        Provide directory path for input folder, else leave as False to be
+        prompted for path. The default is False.
+        
     Returns
     -------
     filepathList : LIST
         List of filepaths, either STRs or TUPLEs, depending on parameter set.
 
     """
-    directory = input("Enter directory containing Phon output files (csv): ")
+    if not path:
+        directory = input("Enter directory containing Phon output files (csv): ")
+    elif path:
+        directory = os.path.normpath(path)
     with change_dir(os.path.normpath(directory)):
         files_in_subdirectories = []
         if subdirectories:
@@ -75,6 +83,9 @@ def csv_to_pd(fileList=folder_input()):
         if f[1].endswith('.csv'):
             with change_dir(f[0]):
                 df = pd.read_csv(f[1], encoding='utf-8')
+                # Add file directory path as a column so it stays with
+                # dataframe for later use
+                df['file_dir'] = f[0]
                 df_list.append(df)
     return df_list
 
@@ -92,6 +103,7 @@ def df_preview(df):
     d = dtale.show(df)
     d.open_browser()
     return
+  
 
 # Combine rows with same IPA Target
 def phone_accuracy(df):
@@ -123,10 +135,16 @@ def phone_accuracy(df):
     accuracy_df = pd.concat([accurate_df, inaccurate_df, accuracy_df], axis=1)
     accuracy_df = accuracy_df.replace(np.nan, 0)
     accuracy_df['Accuracy'] = accuracy_df['Accurate']/accuracy_df['Total']
+    accuracy_df['session'] = session_name
     
+    dir_path = df['file_dir'].iloc[0]
+    accuracy_df.to_csv(os.path.join(dir_path, session_name+'_Accuracy.csv'), 
+                       columns=['Total', 'Accurate', 'Inaccurate', 'session'],
+                       encoding='utf-8', index=True)
+    
+    # accuracy_df.to_csv()
     return accuracy_df
      
-### Script to convert dataframes to csv
-
+### TO DO: Add option to remove old files
 
 result = test_func(phone_accuracy, csv_to_pd())
