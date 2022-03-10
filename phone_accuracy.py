@@ -3,8 +3,23 @@ Created on Tue June 22, 2021
 
 @author: Philip
 
-Aggregates output from a phones query in Phon to generate an aggregate 
-accuracy value for each unique phone/phone sequence.
+Aggregates output from a phones query in Phon 3.0+ to generate an aggregate 
+accuracy value for each unique phone/phone sequence. Useful for generating 
+output similar to Phon 2.2 accuracy queries.
+
+Uses test_func.py to batch run this process on multiple files in a folder and
+its subdirectories
+
+Use case:
+# Given a single file to convert. User will be asked to paste directory path 
+# containing file. 
+# Revised file will be created in same directory.
+
+phone_accuracy(csv_to_pd()[0])
+
+# Given a folder with subfolders of files to convert
+
+result = test_func(phone_accuracy, csv_to_pd())
 
 """
 import os
@@ -64,6 +79,7 @@ def folder_input(subdirectories=True, separate_file_path=True, path=False):
     return filepathList
             
 # Open appropriate CSV files from folder and import as pandas df
+# By default gets folder of input folder_input()
 def csv_to_pd(fileList=folder_input()):
     """
     Generates DataFrames from csv files in a directory.
@@ -104,7 +120,6 @@ def df_preview(df):
     d.open_browser()
     return
   
-
 # Combine rows with same IPA Target
 def phone_accuracy(df):
     """
@@ -148,3 +163,4 @@ def phone_accuracy(df):
 ### TO DO: Add option to remove old files
 
 result = test_func(phone_accuracy, csv_to_pd())
+
