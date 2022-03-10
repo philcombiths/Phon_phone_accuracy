@@ -23,6 +23,7 @@ result = test_func(phone_accuracy, csv_to_pd())
 
 """
 import os
+import sys
 import pandas as pd
 import numpy as np
 from contextlib import contextmanager
@@ -80,7 +81,7 @@ def folder_input(subdirectories=True, separate_file_path=True, path=False):
             
 # Open appropriate CSV files from folder and import as pandas df
 # By default gets folder of input folder_input()
-def csv_to_pd(fileList=folder_input()):
+def csv_to_pd(fileList=folder_input(), delete_original=False):
     """
     Generates DataFrames from csv files in a directory.
 
@@ -94,8 +95,18 @@ def csv_to_pd(fileList=folder_input()):
     df : DATAFRAME
 
     """
+    if delete_original:
+        print("*************************WARNING*************************")
+        print("Original files will be PERMANENTLY DELETED.")
+        permission = input("Type OK to proceed. Anything else to cancel:")
+        if permission == "OK":
+            pass
+        else:
+            sys.exit()
     df_list = []
     for f in fileList:
+        # f[0] = path to file directory
+        # f[1] = filename
         if f[1].endswith('.csv'):
             with change_dir(f[0]):
                 df = pd.read_csv(f[1], encoding='utf-8')
@@ -103,6 +114,12 @@ def csv_to_pd(fileList=folder_input()):
                 # dataframe for later use
                 df['file_dir'] = f[0]
                 df_list.append(df)
+                # WARNING: deletes original file
+                if delete_original:
+                    os.remove(f[1])
+
+        
+    
     return df_list
 
 # Preview dataframe
@@ -162,5 +179,6 @@ def phone_accuracy(df):
      
 ### TO DO: Add option to remove old files
 
+result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
 result = test_func(phone_accuracy, csv_to_pd())
 
