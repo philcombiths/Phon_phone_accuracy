@@ -176,9 +176,10 @@ def phone_accuracy(df):
     
     # accuracy_df.to_csv()
     return accuracy_df
-     
-### TO DO: Add option to remove old files
 
-result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
+
 result = test_func(phone_accuracy, csv_to_pd())
+
+## WARNING: deletes original files
+# result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
 
