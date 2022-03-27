@@ -27,7 +27,7 @@ import sys
 import pandas as pd
 import numpy as np
 from contextlib import contextmanager
-import dtale
+# import dtale
 from test_func import test_func
         
 @contextmanager
@@ -123,19 +123,19 @@ def csv_to_pd(fileList=folder_input(), delete_original=False):
     return df_list
 
 # Preview dataframe
-def df_preview(df):
-    """
+# def df_preview(df):
+#     """
     
-    Opens a pandas DataFrame in browser window.
+#     Opens a pandas DataFrame in browser window.
     
-    Parameters
-    ----------
-    df : DATAFRAME
+#     Parameters
+#     ----------
+#     df : DATAFRAME
 
-    """
-    d = dtale.show(df)
-    d.open_browser()
-    return
+#     """
+#     d = dtale.show(df)
+#     d.open_browser()
+#     return
   
 # Combine rows with same IPA Target
 def phone_accuracy(df):
@@ -177,9 +177,13 @@ def phone_accuracy(df):
     # accuracy_df.to_csv()
     return accuracy_df
 
+## Convert single file
+# phone_accuracy(csv_to_pd()[0])
 
+## Convert directory + subdirectories
 result = test_func(phone_accuracy, csv_to_pd())
 
 ## WARNING: deletes original files
 # result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
+
 
