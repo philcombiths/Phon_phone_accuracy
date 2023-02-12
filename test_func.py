@@ -90,4 +90,5 @@ def test_func(function, parameters, single_param=True):
                 print(f"\t\tReturn:\n\t\t\t{func_result}")            
         print(f"End Test {n}")
     # Return dictionary of output of each function call
+    print("Complete")
     return test_return_list

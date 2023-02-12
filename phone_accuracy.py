@@ -1,9 +1,9 @@
 """
 Created on Tue June 22, 2021
-
+Updated: 2023-02-11
 @author: Philip
 
-Aggregates output from a phones query in Phon 3.0+ to generate an aggregate 
+Aggregates output from a phones query in Phon 3.0+ (phoneto generate an aggregate 
 accuracy value for each unique phone/phone sequence. Useful for generating 
 output similar to Phon 2.2 accuracy queries.
 
@@ -81,7 +81,7 @@ def folder_input(subdirectories=True, separate_file_path=True, path=False):
             
 # Open appropriate CSV files from folder and import as pandas df
 # By default gets folder of input folder_input()
-def csv_to_pd(fileList=folder_input(), delete_original=False):
+def csv_to_pd(fileList=folder_input(), delete_original=False, overwrite_original=False):
     """
     Generates DataFrames from csv files in a directory.
 
@@ -89,6 +89,10 @@ def csv_to_pd(fileList=folder_input(), delete_original=False):
     ----------
     fileList : LIST, optional
         List of csv filepaths. The default is generated with folder_input().
+    delete_original : BOOL, optional
+        Set to True to delete original source files and leave only converted files.
+    overwrite_original : BOOL, optional
+        Set to True to overwrite existing converted files, if present.
 
     Returns
     -------
@@ -104,10 +108,30 @@ def csv_to_pd(fileList=folder_input(), delete_original=False):
         else:
             sys.exit()
     df_list = []
+    overwrite_accepted=False
     for f in fileList:
         # f[0] = path to file directory
         # f[1] = filename
-        if f[1].endswith('.csv'):
+        # Skip existing converted files
+        if f[1].endswith('_Accuracy.csv'):
+            # Exit with warning if overwrite_original==False
+            if not overwrite_original:
+                print("**********************************************************")
+                print("WARNING: converted files already present. Set csv_to_pd(overwrite_existing=True) to overwrite")
+                sys.exit()
+            elif overwrite_original:
+                if overwrite_accepted:
+                    pass
+                else:
+                    overwrite_warning = input(
+                        "WARNING: existing converted files are present. These WILL be erased. Type overwrite to proceed. Anything else to exit: ")
+                    if overwrite_warning!="overwrite":
+                        print("Exiting script. Existing converted files present.")
+                        sys.exit()
+                    elif overwrite_warning=="overwrite":
+                        overwrite_accepted=True
+                        print("Existing files overwritten.")
+        elif f[1].endswith('.csv'):
             with change_dir(f[0]):
                 df = pd.read_csv(f[1], encoding='utf-8')
                 # Add file directory path as a column so it stays with
@@ -130,7 +154,7 @@ def csv_to_pd(fileList=folder_input(), delete_original=False):
     
 #     Parameters
 #     ----------
-#     df : DATAFRAME
+#     df : DATAFRAME    
 
 #     """
 #     d = dtale.show(df)
@@ -181,7 +205,7 @@ def phone_accuracy(df):
 # phone_accuracy(csv_to_pd()[0])
 
 ## Convert directory + subdirectories
-result = test_func(phone_accuracy, csv_to_pd())
+result=test_func(phone_accuracy, csv_to_pd(overwrite_original=False))
 
 ## WARNING: deletes original files
 # result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
