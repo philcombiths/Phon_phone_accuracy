@@ -3,9 +3,9 @@ Created on Tue June 22, 2021
 Updated: 2023-02-11
 @author: Philip
 
-Aggregates output from a phones query in Phon 3.0+ (phoneto generate an aggregate 
+Aggregates output from a phones query (e.g., Queries_v3_aggregate-accuracy.xml) in Phon 3.0+ (generate an aggregate 
 accuracy value for each unique phone/phone sequence. Useful for generating 
-output similar to Phon 2.2 accuracy queries.
+output similar to Phon 2.2 accuracy queries from Phon 3.0 accuracy queries.
 
 Uses test_func.py to batch run this process on multiple files in a folder and
 its subdirectories
@@ -24,12 +24,15 @@ result = test_func(phone_accuracy, csv_to_pd())
 """
 import os
 import sys
-import pandas as pd
-import numpy as np
 from contextlib import contextmanager
+
+import numpy as np
+import pandas as pd
+
 # import dtale
 from test_func import test_func
-        
+
+
 @contextmanager
 def change_dir(newdir):
     prevdir = os.getcwd()
@@ -38,10 +41,9 @@ def change_dir(newdir):
     finally:
         os.chdir(prevdir)
 
+
 # Specify folder containing Phon output
 def folder_input(subdirectories=True, separate_file_path=True, path=False):
-
-    
     """
 
     Parameters
@@ -53,7 +55,7 @@ def folder_input(subdirectories=True, separate_file_path=True, path=False):
     path : STR (BOOL), optional
         Provide directory path for input folder, else leave as False to be
         prompted for path. The default is False.
-        
+
     Returns
     -------
     filepathList : LIST
@@ -76,9 +78,12 @@ def folder_input(subdirectories=True, separate_file_path=True, path=False):
     if separate_file_path:
         filepathList = files_in_subdirectories
     else:
-        filepathList = [os.path.join(f_tuple[0], f_tuple[1]) for f_tuple in files_in_subdirectories]
+        filepathList = [
+            os.path.join(f_tuple[0], f_tuple[1]) for f_tuple in files_in_subdirectories
+        ]
     return filepathList
-            
+
+
 # Open appropriate CSV files from folder and import as pandas df
 # By default gets folder of input folder_input()
 def csv_to_pd(fileList=folder_input(), delete_original=False, overwrite_original=False):
@@ -108,59 +113,62 @@ def csv_to_pd(fileList=folder_input(), delete_original=False, overwrite_original
         else:
             sys.exit()
     df_list = []
-    overwrite_accepted=False
+    overwrite_accepted = False
     for f in fileList:
         # f[0] = path to file directory
         # f[1] = filename
         # Skip existing converted files
-        if f[1].endswith('_Accuracy.csv'):
+        if f[1].endswith("_Accuracy.csv"):
             # Exit with warning if overwrite_original==False
             if not overwrite_original:
                 print("**********************************************************")
-                print("WARNING: converted files already present. Set csv_to_pd(overwrite_existing=True) to overwrite")
+                print(
+                    "WARNING: converted files already present. Set csv_to_pd(overwrite_existing=True) to overwrite"
+                )
                 sys.exit()
             elif overwrite_original:
                 if overwrite_accepted:
                     pass
                 else:
                     overwrite_warning = input(
-                        "WARNING: existing converted files are present. These WILL be erased. Type overwrite to proceed. Anything else to exit: ")
-                    if overwrite_warning!="overwrite":
+                        "WARNING: existing converted files are present. These WILL be erased. Type overwrite to proceed. Anything else to exit: "
+                    )
+                    if overwrite_warning != "overwrite":
                         print("Exiting script. Existing converted files present.")
                         sys.exit()
-                    elif overwrite_warning=="overwrite":
-                        overwrite_accepted=True
+                    elif overwrite_warning == "overwrite":
+                        overwrite_accepted = True
                         print("Existing files overwritten.")
-        elif f[1].endswith('.csv'):
+        elif f[1].endswith(".csv"):
             with change_dir(f[0]):
-                df = pd.read_csv(f[1], encoding='utf-8')
+                df = pd.read_csv(f[1], encoding="utf-8")
                 # Add file directory path as a column so it stays with
                 # dataframe for later use
-                df['file_dir'] = f[0]
+                df["file_dir"] = f[0]
                 df_list.append(df)
                 # WARNING: deletes original file
                 if delete_original:
                     os.remove(f[1])
 
-        
-    
     return df_list
+
 
 # Preview dataframe
 # def df_preview(df):
 #     """
-    
+
 #     Opens a pandas DataFrame in browser window.
-    
+
 #     Parameters
 #     ----------
-#     df : DATAFRAME    
+#     df : DATAFRAME
 
 #     """
 #     d = dtale.show(df)
 #     d.open_browser()
 #     return
-  
+
+
 # Combine rows with same IPA Target
 def phone_accuracy(df):
     """
@@ -178,36 +186,38 @@ def phone_accuracy(df):
 
     """
     session_name = df.columns[2]
-    df.rename(columns={session_name:'Total'}, inplace=True)
-    accurate_mask = df['IPA Target'] == df['IPA Actual']
-    inaccurate_mask = df['IPA Target'] != df['IPA Actual']
-    
-    accuracy_df = df.groupby(df['IPA Target']).sum()
-    accurate_df = df[accurate_mask].rename(columns={'Total':'Accurate'})
-    inaccurate_df = df[inaccurate_mask].rename(columns={'Total':'Inaccurate'})
-    accurate_df = accurate_df.groupby(accurate_df['IPA Target']).sum()
-    inaccurate_df = inaccurate_df.groupby(inaccurate_df['IPA Target']).sum()
-    
+    df.rename(columns={session_name: "Total"}, inplace=True)
+    accurate_mask = df["IPA Target"] == df["IPA Actual"]
+    inaccurate_mask = df["IPA Target"] != df["IPA Actual"]
+
+    accuracy_df = df.groupby(df["IPA Target"]).sum()
+    accurate_df = df[accurate_mask].rename(columns={"Total": "Accurate"})
+    inaccurate_df = df[inaccurate_mask].rename(columns={"Total": "Inaccurate"})
+    accurate_df = accurate_df.groupby(accurate_df["IPA Target"]).sum()
+    inaccurate_df = inaccurate_df.groupby(inaccurate_df["IPA Target"]).sum()
+
     accuracy_df = pd.concat([accurate_df, inaccurate_df, accuracy_df], axis=1)
     accuracy_df = accuracy_df.replace(np.nan, 0)
-    accuracy_df['Accuracy'] = accuracy_df['Accurate']/accuracy_df['Total']
-    accuracy_df['session'] = session_name
-    
-    dir_path = df['file_dir'].iloc[0]
-    accuracy_df.to_csv(os.path.join(dir_path, session_name+'_Accuracy.csv'), 
-                       columns=['Total', 'Accurate', 'Inaccurate', 'session'],
-                       encoding='utf-8', index=True)
-    
+    accuracy_df["Accuracy"] = accuracy_df["Accurate"] / accuracy_df["Total"]
+    accuracy_df["session"] = session_name
+
+    dir_path = df["file_dir"].iloc[0]
+    accuracy_df.to_csv(
+        os.path.join(dir_path, session_name + "_Accuracy.csv"),
+        columns=["Total", "Accurate", "Inaccurate", "session"],
+        encoding="utf-8",
+        index=True,
+    )
+
     # accuracy_df.to_csv()
     return accuracy_df
+
 
 ## Convert single file
 # phone_accuracy(csv_to_pd()[0])
 
 ## Convert directory + subdirectories
-result=test_func(phone_accuracy, csv_to_pd(overwrite_original=False))
+result = test_func(phone_accuracy, csv_to_pd(overwrite_original=False))
 
 ## WARNING: deletes original files
 # result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
-
-
