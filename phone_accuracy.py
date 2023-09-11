@@ -282,10 +282,10 @@ def phone_accuracy_by_participant(df):
 # phone_accuracy_by_participant(csv_to_pd()[0])
 
 ## Convert directory + subdirectories (original)
-# result = test_func(phone_accuracy, csv_to_pd(overwrite_original=False))
+result = test_func(phone_accuracy, csv_to_pd(overwrite_original=False))
 
 ## Convert directory + subdirectories (by-participant query)
-result = test_func(phone_accuracy_by_participant, csv_to_pd(overwrite_original=False))
+# result = test_func(phone_accuracy_by_participant, csv_to_pd(overwrite_original=False))
 
 ## WARNING: deletes original files
 # result = test_func(phone_accuracy, csv_to_pd(delete_original=True))
